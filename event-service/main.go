@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"event-service/api/handler"
+	"event-service/service"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
 	"log"
@@ -19,8 +20,11 @@ func main() {
 
 	router := gin.Default()
 
+	eventService := service.NewEventService(&service.ESConfig{EventRepository: nil})
+
 	handler.NewHandler(&handler.Config{
-		R: router,
+		R:            router,
+		EventService: eventService,
 	})
 
 	srv := &http.Server{
