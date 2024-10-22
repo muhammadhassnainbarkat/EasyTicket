@@ -1,0 +1,40 @@
+services:
+  reverse-proxy:
+    image: traefik:v2.2
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedByDefault=false"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  event-service:
+    build:
+      context: ./event-service
+      target: builder
+    image: event-service
+    expose:
+      - "8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.event.rule=Host(`easy.ticket.test`) && PathPrefix(`/api/event/`)"
+    environment:
+      - ENV=dev
+#    volumes:
+#      - ./event-service:/go/src/app
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./event-service/
+          target: /go/src/app
+          ignore:
+            - .gitignore
+    command: sh -c "go run main.go"
+
+
+
+
+

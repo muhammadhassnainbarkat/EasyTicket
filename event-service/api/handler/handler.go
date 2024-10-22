@@ -11,7 +11,7 @@ type Config struct {
 func NewHandler(cfg *Config) {
 	h := &Handler{}
 
-	g := cfg.R.Group("/api/events")
+	g := cfg.R.Group("/api/event")
 	g.GET("/ping", h.Ping)
 }
 
