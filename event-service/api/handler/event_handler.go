@@ -11,12 +11,12 @@ type EventHandler struct {
 	EventService models.EventService
 }
 
-type Config struct {
+type EventHandlerConfig struct {
 	R            *gin.Engine
 	EventService models.EventService
 }
 
-func NewHandler(cfg *Config) {
+func NewEventHandler(cfg *EventHandlerConfig) {
 	h := &EventHandler{
 		EventService: cfg.EventService,
 	}

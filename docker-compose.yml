@@ -10,12 +10,17 @@ services:
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - easy-ticket-network
 
   event-service:
+    container_name: event-service
     build:
       context: ./event-service
       target: builder
     image: event-service
+    env_file:
+      - ".env.dev"
     expose:
       - "8080"
     labels:
@@ -32,8 +37,37 @@ services:
           target: /go/src/app
           ignore:
             - .gitignore
-    command: sh -c "go run main.go"
+    command: sh -c "go run ./"
+    networks:
+      - easy-ticket-network
 
+  easy-ticket-pg-db:
+    container_name: easy-ticket-pg-db
+    image: postgres:17.0
+    env_file:
+      - .env.dev
+    volumes:
+      - pg-easy-ticket-database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - easy-ticket-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+
+
+networks:
+  easy-ticket-network:
+    driver: bridge
+
+
+volumes:
+  pg-easy-ticket-database:
+    external: true
 
 
 

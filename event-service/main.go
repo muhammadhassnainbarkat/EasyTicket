@@ -2,9 +2,7 @@ package main
 
 import (
 	"errors"
-	"event-service/api/handler"
-	"event-service/service"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
@@ -16,16 +14,19 @@ import (
 
 func main() {
 
-	log.Println("starting server...")
+	fmt.Println("starting server...")
 
-	router := gin.Default()
+	ds, err := initDS()
 
-	eventService := service.NewEventService(&service.ESConfig{EventRepository: nil})
+	if err != nil {
+		log.Fatalf("failed to init ds: %v", err)
+	}
 
-	handler.NewHandler(&handler.Config{
-		R:            router,
-		EventService: eventService,
-	})
+	router, err := setupRouter(ds)
+
+	if err != nil {
+		log.Fatalf("failed to setup router: %v", err)
+	}
 
 	srv := &http.Server{
 		Addr:    ":8080",
