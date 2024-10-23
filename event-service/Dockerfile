@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ./run .
+#RUN go build -o ./run . uncomment to build and run
 
 
 FROM alpine:latest

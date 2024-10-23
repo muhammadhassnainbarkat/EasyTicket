@@ -20,7 +20,7 @@ services:
       target: builder
     image: event-service
     env_file:
-      - ".env.dev"
+      - ".dev.env"
     expose:
       - "8080"
     labels:
@@ -45,7 +45,7 @@ services:
     container_name: easy-ticket-pg-db
     image: postgres:17.0
     env_file:
-      - .env.dev
+      - .dev.env
     volumes:
       - pg-easy-ticket-database:/var/lib/postgresql/data
     ports:
