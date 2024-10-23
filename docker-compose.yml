@@ -13,6 +13,17 @@ services:
     networks:
       - easy-ticket-network
 
+  migration:
+    container_name: migration
+    image: event-service
+    depends_on:
+      - easy-ticket-pg-db
+    env_file:
+      - ".dev.env"
+    command: sh -c "go run ./cmd/migrate/main.go up"
+    networks:
+      - easy-ticket-network
+
   event-service:
     container_name: event-service
     build:
@@ -40,6 +51,9 @@ services:
     command: sh -c "go run ./"
     networks:
       - easy-ticket-network
+    depends_on:
+      - migration
+      - easy-ticket-pg-db
 
   easy-ticket-pg-db:
     container_name: easy-ticket-pg-db
