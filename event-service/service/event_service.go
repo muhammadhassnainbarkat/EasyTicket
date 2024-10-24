@@ -29,3 +29,11 @@ func (es *EventService) Ping() map[string]any {
 	mapping["message"] = "pong"
 	return mapping
 }
+
+func (es *EventService) CreateEvent(event *models.Event) (*models.Event, error) {
+	createEvent, err := es.EventRepository.CreateEvent(event)
+	if err != nil {
+		return nil, err
+	}
+	return createEvent, nil
+}

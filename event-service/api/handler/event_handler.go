@@ -21,8 +21,13 @@ func NewEventHandler(cfg *EventHandlerConfig) {
 		EventService: cfg.EventService,
 	}
 	g := cfg.R.Group("/api/event")
-	g.GET("/ping", h.Ping)
-	g.GET("/:id", h.getEventById)
+	{
+		g.GET("/ping", h.Ping)
+		g.GET("/:id", h.getEventById)
+		g.POST("/", h.createEvent)
+	}
+
+	//g.PUT("/:id", h.updateEvent)
 }
 
 func (h *EventHandler) Ping(c *gin.Context) {
@@ -37,4 +42,17 @@ func (h *EventHandler) getEventById(c *gin.Context) {
 	} else {
 		c.JSON(200, event)
 	}
+}
+
+func (h *EventHandler) createEvent(context *gin.Context) {
+	var event models.Event
+	if err := context.ShouldBindJSON(&event); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	createEvent, err := h.EventService.CreateEvent(&event)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{})
+	}
+	context.JSON(http.StatusCreated, createEvent)
 }
