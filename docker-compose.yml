@@ -36,7 +36,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.event.rule=Host(`easy.ticket.test`) && PathPrefix(`/api/event/`)"
+      - "traefik.http.routers.event.rule=Host(`easy.ticket.test`) && PathPrefix(`/api/event`)"
     environment:
       - ENV=dev
 #    volumes:

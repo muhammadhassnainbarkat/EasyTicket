@@ -17,11 +17,13 @@ func NewEventService(config *ESConfig) models.EventService {
 }
 
 func (es *EventService) GetEvent(ID uint) (*models.Event, error) {
-	return &models.Event{
-		ID:          ID,
-		Name:        "Test",
-		Description: "Description",
-	}, nil
+
+	event, err := es.EventRepository.FindByID(ID)
+
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
 }
 
 func (es *EventService) Ping() map[string]any {
@@ -36,4 +38,8 @@ func (es *EventService) CreateEvent(event *models.Event) (*models.Event, error) 
 		return nil, err
 	}
 	return createEvent, nil
+}
+
+func (es *EventService) GetAllEvents(page int, size int) []models.Event {
+	return es.EventRepository.FindAllEvents(page, size)
 }

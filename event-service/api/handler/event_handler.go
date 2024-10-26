@@ -24,7 +24,8 @@ func NewEventHandler(cfg *EventHandlerConfig) {
 	{
 		g.GET("/ping", h.Ping)
 		g.GET("/:id", h.getEventById)
-		g.POST("/", h.createEvent)
+		g.GET("", h.getAllEvents)
+		g.POST("", h.createEvent)
 	}
 
 	//g.PUT("/:id", h.updateEvent)
@@ -55,4 +56,22 @@ func (h *EventHandler) createEvent(context *gin.Context) {
 		context.JSON(http.StatusInternalServerError, gin.H{})
 	}
 	context.JSON(http.StatusCreated, createEvent)
+}
+
+func (h *EventHandler) getAllEvents(context *gin.Context) {
+	q := context.Request.URL.Query()
+
+	page, _ := strconv.Atoi(q.Get("page"))
+	size, _ := strconv.Atoi(q.Get("size"))
+
+	if page < 1 {
+		page = 1
+	}
+	if size > 100 {
+		size = 100
+	} else if size <= 0 {
+		size = 10
+	}
+	events := h.EventService.GetAllEvents(page, size)
+	context.JSON(http.StatusOK, events)
 }
