@@ -4,6 +4,7 @@ import (
 	"event-service/api/models"
 	"fmt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PgEventRepository struct {
@@ -16,7 +17,7 @@ func NewEventRepository(db *gorm.DB) models.EventRepository {
 
 func (repository PgEventRepository) FindByID(u uint) (*models.Event, error) {
 	var event models.Event
-	if err := repository.DB.First(&event, u).Error; err != nil {
+	if err := repository.DB.Preload("Venue.Seats").Preload(clause.Associations).First(&event, u).Error; err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
@@ -34,10 +35,7 @@ func (repository PgEventRepository) CreateEvent(event *models.Event) (*models.Ev
 
 func (repository PgEventRepository) FindAllEvents(page, size int) []models.Event {
 	var events []models.Event
-	var count int64
-	repository.DB.Scopes(Paginate(page, size)).Find(&events).Count(&count)
-	fmt.Println(count)
-	fmt.Println(events)
+	repository.DB.Preload("Venue.Seats").Preload(clause.Associations).Scopes(Paginate(page, size)).Find(&events)
 	return events
 }
 
