@@ -7,7 +7,6 @@ services:
       - "--providers.docker.exposedByDefault=false"
     ports:
       - "80:80"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -33,7 +32,7 @@ services:
     env_file:
       - ".dev.env"
     expose:
-      - "8080"
+      - "${EVENT_SERVICE_PORT}"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.event.rule=Host(`easy.ticket.test`) && PathPrefix(`/api/event`)"
@@ -54,7 +53,36 @@ services:
     depends_on:
       - migration
       - easy-ticket-pg-db
-
+  booking-service:
+    container_name: booking-service
+    build:
+      context: ./booking-service
+      target: builder
+    image: booking-service
+    env_file:
+      - ".dev.env"
+    expose:
+      - "${BOOKING_SERVICE_PORT}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.booking.rule=Host(`easy.ticket.test`) && PathPrefix(`/api/booking`)"
+    environment:
+      - ENV=dev
+    #    volumes:
+    #      - ./event-service:/go/src/app
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./booking-service/
+          target: /go/src/app
+          ignore:
+            - .gitignore
+    command: sh -c "go run ./cmd/api/main.go"
+    networks:
+      - easy-ticket-network
+    depends_on:
+      - migration
+      - easy-ticket-pg-db
   easy-ticket-pg-db:
     container_name: easy-ticket-pg-db
     image: postgres:17.0
@@ -63,7 +91,7 @@ services:
     volumes:
       - pg-easy-ticket-database:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     networks:
       - easy-ticket-network
     healthcheck:
