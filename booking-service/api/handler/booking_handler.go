@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"booking-service/service/interfaces"
+	"booking-service/interfaces"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

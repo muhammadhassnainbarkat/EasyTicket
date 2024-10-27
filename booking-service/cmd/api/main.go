@@ -2,11 +2,13 @@ package main
 
 import (
 	"booking-service/api/handler"
+	"booking-service/repository"
 	"booking-service/service"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -18,7 +20,8 @@ import (
 )
 
 type DataSources struct {
-	DB *gorm.DB
+	DB          *gorm.DB
+	redisClient *redis.Client
 }
 
 func main() {
@@ -82,14 +85,32 @@ func initDS() (*DataSources, error) {
 		return nil, fmt.Errorf("error opening DB: %w", err)
 	}
 	fmt.Println("Successfully initialized data sources")
-	return &DataSources{DB: db}, nil
+
+	fmt.Println("Initializing Redis Data Source")
+	options := redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+		Password: "",
+		DB:       0,
+		Protocol: 2,
+	}
+	redisClient := redis.NewClient(&options)
+	fmt.Println("Initializing Redis Data Source", options)
+
+	if err := redisClient.Ping(context.Background()).Err(); err != nil {
+		return nil, fmt.Errorf("error connecting to Redis: %w", err)
+	}
+	fmt.Println("Successfully initialized Redis Data Source")
+	return &DataSources{DB: db, redisClient: redisClient}, nil
 }
 
 func setupRouter(d *DataSources) (*gin.Engine, error) {
 
 	engine := gin.New()
 
-	bookingService := service.NewBookingService()
+	seatsRepository := repository.PgSeatsRepository{DB: d.DB}
+	seatService := service.NewSeatsService(seatsRepository)
+	bookingService := service.NewBookingService(seatService, d.redisClient)
+
 	handler.NewBookingHandler(engine, bookingService)
 
 	return engine, nil

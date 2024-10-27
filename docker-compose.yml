@@ -83,6 +83,7 @@ services:
     depends_on:
       - migration
       - easy-ticket-pg-db
+      - redis-db
   easy-ticket-pg-db:
     container_name: easy-ticket-pg-db
     image: postgres:17.0
@@ -100,6 +101,20 @@ services:
       timeout: 10s
       retries: 5
 
+  redis-db:
+    container_name: redis-db
+    image: redis:7.4.1
+    env_file:
+      - .dev.env
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - easy-ticket-network
 
 
 networks:
