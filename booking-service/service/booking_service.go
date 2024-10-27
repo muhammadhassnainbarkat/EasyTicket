@@ -3,8 +3,10 @@ package service
 import (
 	"booking-service/interfaces"
 	"booking-service/model"
+	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"time"
 )
 
 type BookingService struct {
@@ -34,6 +36,11 @@ func (bookingService BookingService) ReserveBooking(venueId, seatId uint) *model
 	/*
 		save the seat record in redis for x amount of time
 	*/
+	locked := bookingService.RedisClient.Set(context.Background(), "seatId", seatId, 10*time.Minute)
+	if locked.Err() != nil {
+		fmt.Println("can't start session")
+		return nil
+	}
 
 	// TODO: 3. generate the sse event to let other know that seat has been reserved.
 
