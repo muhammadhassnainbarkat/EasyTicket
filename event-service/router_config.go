@@ -12,7 +12,7 @@ func setupRouter(d *DataSources) (*gin.Engine, error) {
 	router := gin.New()
 
 	eventRepository := repository.NewEventRepository(d.DB)
-	eventService := service.NewEventService(&service.ESConfig{EventRepository: eventRepository})
+	eventService := service.NewEventService(&service.ESConfig{EventRepository: eventRepository, RedisClient: d.redisClient})
 
 	h := handler.EventHandlerConfig{R: router, EventService: eventService}
 	handler.NewEventHandler(&h)

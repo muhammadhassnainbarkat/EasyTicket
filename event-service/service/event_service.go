@@ -1,18 +1,26 @@
 package service
 
-import "event-service/api/models"
+import (
+	"context"
+	"event-service/api/models"
+	"fmt"
+	"github.com/redis/go-redis/v9"
+)
 
 type EventService struct {
 	EventRepository models.EventRepository
+	RedisClient     *redis.Client
 }
 
 type ESConfig struct {
 	EventRepository models.EventRepository
+	RedisClient     *redis.Client
 }
 
 func NewEventService(config *ESConfig) models.EventService {
 	return &EventService{
 		EventRepository: config.EventRepository,
+		RedisClient:     config.RedisClient,
 	}
 }
 
@@ -23,6 +31,25 @@ func (es *EventService) GetEvent(ID uint) (*models.Event, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	seats := event.Venue.Seats
+	availableSeats := make([]models.Seat, 0, len(seats))
+	if len(seats) > 0 {
+		seatsID := make([]string, len(seats))
+		for i, seat := range seats {
+			seatsID[i] = fmt.Sprintf("%v", seat.ID)
+		}
+		lookedSeats, err := es.RedisClient.MGet(context.Background(), seatsID...).Result()
+		if err == nil {
+			for i, lookedSeat := range lookedSeats {
+				if lookedSeat == nil {
+					availableSeats = append(availableSeats, seats[i])
+				}
+			}
+		}
+	}
+	event.Venue.Seats = availableSeats
+
 	return event, nil
 }
 
