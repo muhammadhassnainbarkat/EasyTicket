@@ -11,8 +11,8 @@ type BookingHandler struct {
 }
 
 type ReserveBookingRequest struct {
-	venueId uint
-	seatId  uint
+	VenueId uint `json:"venueId"`
+	SeatId  uint `json:"seatId"`
 }
 
 func NewBookingHandler(engine *gin.Engine, bookingService interfaces.IBookingService) {
@@ -32,10 +32,15 @@ func (bookingHandler *BookingHandler) reserveBooking(context *gin.Context) {
 	request := ReserveBookingRequest{}
 	if err := context.ShouldBindJSON(&request); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	booking := bookingHandler.BookingService.ReserveBooking(request.venueId, request.seatId)
+	booking, err := bookingHandler.BookingService.ReserveBooking(request.VenueId, request.SeatId)
 
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	context.JSON(http.StatusOK, booking)
 }
 
